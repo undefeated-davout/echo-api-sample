@@ -1,12 +1,12 @@
 version: "3.9"
 services:
-  app:
-    container_name: go-api-sample.app
+  api:
+    container_name: go-api-sample.api
     build: .
     environment:
       TODO_ENV: dev
       PORT: 8080
-      TODO_DB_HOST: go-api-sample-db
+      TODO_DB_HOST: db
       TODO_DB_PORT: 3306
       TODO_DB_USER: sample
       TODO_DB_PASSWORD: sample
@@ -16,17 +16,17 @@ services:
     ports:
       - "18000:8080"
 
-  go-api-sample-db:
-    container_name: go-api-sample.db
-    image: mysql:8.0.29
-    platform: linux/amd64
-    environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-      MYSQL_USER: sample
-      MYSQL_PASSWORD: sample
-      MYSQL_DATABASE: sample
-    volumes:
-      - ./_shared_volumes/db_data:/var/lib/mysql
-      - ./_tools/mysql/conf.d:/etc/mysql/conf.d:cached
-    ports:
-      - "33306:3306"
+  # db:
+  #   container_name: go-api-sample.db
+  #   image: mysql:8.0.29
+  #   platform: linux/amd64
+  #   environment:
+  #     MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+  #     MYSQL_USER: sample
+  #     MYSQL_PASSWORD: sample
+  #     MYSQL_DATABASE: sample
+  #   volumes:
+  #     - ./_shared_volumes/db_data:/var/lib/mysql
+  #     - ./_tools/mysql/conf.d:/etc/mysql/conf.d:cached
+  #   ports:
+  #     - "33306:3306"
