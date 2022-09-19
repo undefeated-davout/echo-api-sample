@@ -4,13 +4,13 @@ services:
     container_name: go-api-sample.api
     build: .
     environment:
-      TODO_ENV: dev
+      ENV: dev
       PORT: 8080
-      TODO_DB_HOST: db
-      TODO_DB_PORT: 3306
-      TODO_DB_USER: sample
-      TODO_DB_PASSWORD: sample
-      TODO_DB_DATABASE: sample
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: sample
+      DB_PASSWORD: sample
+      DB_DATABASE: sample
     volumes:
       - .:/app
     ports:
