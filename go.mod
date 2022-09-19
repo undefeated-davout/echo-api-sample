@@ -3,6 +3,7 @@ module undefeated-davout/go-api-sample
 go 1.19
 
 require (
+	github.com/caarlos0/env/v6 v6.10.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/labstack/echo/v4 v4.9.0 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
