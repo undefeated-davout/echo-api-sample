@@ -1,14 +1,18 @@
 package config
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
 
 func TestNew(t *testing.T) {
-	wantPort := 1234
-	t.Setenv("PORT", fmt.Sprint(wantPort))
+	t.Setenv("ENV", "dev")
+	t.Setenv("PORT", "1234")
+	t.Setenv("DB_HOST", "testhost")
+	t.Setenv("DB_NAME", "testname")
+	t.Setenv("DB_PORT", "3307")
+	t.Setenv("DB_USER", "testdbuser")
+	t.Setenv("DB_PASSWORD", "testdbpassword")
 
 	tests := []struct {
 		name    string
@@ -17,8 +21,8 @@ func TestNew(t *testing.T) {
 	}{
 		{
 			name: "正常",
-			want: &Config{Env: "dev", Port: 1234, DBHost: "db", DBName: "sample", DBPort: 3306, DBUser: "sample",
-				DBPassword: "sample"},
+			want: &Config{Env: "dev", Port: 1234, DBHost: "testhost", DBName: "testname", DBPort: 3307, DBUser: "testdbuser",
+				DBPassword: "testdbpassword"},
 			wantErr: false,
 		},
 	}
