@@ -6,6 +6,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func HealthController(c echo.Context) error {
-	return c.JSON(http.StatusOK, "OK")
+type HealthController struct{}
+
+func (h *HealthController) CheckHealth(c echo.Context) error {
+	return c.JSON(http.StatusOK, struct {
+		Status string `json:"status"`
+	}{Status: "ok"})
 }

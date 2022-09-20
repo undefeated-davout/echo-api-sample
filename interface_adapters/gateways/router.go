@@ -7,5 +7,6 @@ import (
 )
 
 func NewRouter(e *echo.Echo) {
-	e.GET("/health", controllers.HealthController)
+	healthController := &controllers.HealthController{}
+	e.GET("/health", healthController.CheckHealth)
 }
