@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 	"undefeated-davout/echo-api-sample/config"
+	"undefeated-davout/echo-api-sample/interface_adapters/gateways"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -34,7 +35,7 @@ func run(ctx context.Context) error {
 	e.Logger.SetLevel(log.INFO)
 
 	// Routes
-	e.GET("/health", health)
+	gateways.NewMux(e)
 
 	// Start server
 	go func() {
@@ -52,9 +53,4 @@ func run(ctx context.Context) error {
 		e.Logger.Fatal(err)
 	}
 	return nil
-}
-
-// Handler
-func health(c echo.Context) error {
-	return c.JSON(http.StatusOK, "OK")
 }
