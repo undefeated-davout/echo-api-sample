@@ -1,4 +1,4 @@
-module undefeated-davout/go-api-sample
+module undefeated-davout/echo-api-sample
 
 go 1.19
 

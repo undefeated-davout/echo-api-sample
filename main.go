@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"time"
-	"undefeated-davout/go-api-sample/config"
+	"undefeated-davout/echo-api-sample/config"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
