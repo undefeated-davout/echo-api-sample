@@ -4,10 +4,10 @@ test: ## テスト実行
 	go test -race -shuffle=on ./...
 
 dry-migrate: ## マイグレーション用DLL表示
-	mysqldef -u todo -p todo -h todo-db -P 3306 todo --dry-run < ./_tools/mysql/schema.sql
+	mysqldef -u sample -p sample -h db -P 3306 sample --dry-run < ./_tools/mysql/schema.sql
 
 migrate: ## マイグレーション実行
-	mysqldef -u todo -p todo -h todo-db -P 3306 todo < ./_tools/mysql/schema.sql
+	mysqldef -u sample -p sample -h db -P 3306 sample < ./_tools/mysql/schema.sql
 
 generate: ## コード生成
 	go generate ./...

@@ -16,3 +16,4 @@
 
 # --- custom ---
 tmp/
+_shared_volumes/
