@@ -34,16 +34,17 @@ func run(ctx context.Context) error {
 
 	e.Logger.SetLevel(log.INFO)
 
-	// Routes
-	gateways.NewMux(e)
+	// ルーティング
+	gateways.NewRouter(e)
 
-	// Start server
+	// サーバ起動
 	go func() {
 		if err := e.Start(fmt.Sprintf(":%d", cfg.Port)); err != nil && err != http.ErrServerClosed {
 			e.Logger.Fatal("shutting down the server")
 		}
 	}()
 
+	// グレースフルシャットダウン設定
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit

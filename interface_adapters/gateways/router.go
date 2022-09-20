@@ -6,6 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func NewMux(e *echo.Echo) {
+func NewRouter(e *echo.Echo) {
 	e.GET("/health", controllers.HealthController)
 }
