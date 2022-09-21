@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 	"undefeated-davout/echo-api-sample/config"
+	"undefeated-davout/echo-api-sample/frameworks_drivers/database"
 	"undefeated-davout/echo-api-sample/interface_adapters/gateways"
 
 	"github.com/labstack/echo/v4"
@@ -22,7 +23,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context) error {
+func run(ctx context.Context) (err error) {
 	cfg, err := config.New()
 	if err != nil {
 		return err
@@ -34,8 +35,14 @@ func run(ctx context.Context) error {
 
 	e.Logger.SetLevel(log.INFO)
 
+	// DB用意
+	db, err := database.InitDB(cfg)
+	if err != nil {
+		return err
+	}
+
 	// ルーティング
-	gateways.NewRouter(e)
+	gateways.NewRouter(e, db)
 
 	// サーバ起動
 	go func() {

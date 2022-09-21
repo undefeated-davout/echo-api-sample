@@ -17,3 +17,4 @@
 # --- custom ---
 tmp/
 _shared_volumes/
+__debug_bin
