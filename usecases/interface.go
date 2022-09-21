@@ -1,4 +1,4 @@
-package taskusecases
+package usecases
 
 import (
 	"context"

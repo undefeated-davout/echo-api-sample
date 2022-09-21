@@ -42,7 +42,9 @@ func run(ctx context.Context) (err error) {
 	}
 
 	// ルーティング
-	gateways.NewRouter(e, db)
+	if err := gateways.NewRouter(ctx, e, db, cfg); err != nil {
+		return err
+	}
 
 	// サーバ起動
 	go func() {

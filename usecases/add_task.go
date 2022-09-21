@@ -1,4 +1,4 @@
-package taskusecases
+package usecases
 
 import (
 	"context"
@@ -21,15 +21,15 @@ func (a *AddTaskUsecase) AddTask(ctx context.Context, title string, status strin
 
 	var userID entities.UserID = 1
 
-	t := &entities.Task{
+	task := &entities.Task{
 		UserID: userID,
 		Title:  title,
 		Status: entities.TaskStatusTodo,
 	}
 
-	err := a.Repo.AddTask(ctx, a.DB, t)
+	err := a.Repo.AddTask(ctx, a.DB, task)
 	if err != nil {
 		return nil, fmt.Errorf("failed to register: %w", err)
 	}
-	return t, nil
+	return task, nil
 }

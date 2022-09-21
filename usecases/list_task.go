@@ -1,4 +1,4 @@
-package taskusecases
+package usecases
 
 import (
 	"context"
@@ -21,9 +21,9 @@ func (l *ListTaskUsecase) ListTasks(ctx context.Context) ([]entities.Task, error
 
 	var userID entities.UserID = 1
 
-	ts, err := l.Repo.ListTasks(ctx, l.DB, userID)
+	tasks, err := l.Repo.ListTasks(ctx, l.DB, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list: %w", err)
 	}
-	return ts, nil
+	return tasks, nil
 }

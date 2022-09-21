@@ -13,6 +13,8 @@ func TestNew(t *testing.T) {
 	t.Setenv("DB_PORT", "3307")
 	t.Setenv("DB_USER", "testdbuser")
 	t.Setenv("DB_PASSWORD", "testdbpassword")
+	t.Setenv("REDIS_HOST", "testredishost")
+	t.Setenv("REDIS_PORT", "6379")
 
 	tests := []struct {
 		name    string
@@ -22,7 +24,7 @@ func TestNew(t *testing.T) {
 		{
 			name: "正常",
 			want: &Config{Env: "dev", Port: 1234, DBHost: "testhost", DBName: "testname", DBPort: 3307, DBUser: "testdbuser",
-				DBPassword: "testdbpassword"},
+				DBPassword: "testdbpassword", RedisHost: "testredishost", RedisPort: 6379},
 			wantErr: false,
 		},
 	}

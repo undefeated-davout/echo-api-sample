@@ -3,14 +3,14 @@ package controllers
 import (
 	"net/http"
 	"undefeated-davout/echo-api-sample/entities"
-	taskusecases "undefeated-davout/echo-api-sample/usecases/task_usecases"
+	"undefeated-davout/echo-api-sample/usecases"
 
 	"github.com/labstack/echo/v4"
 )
 
 type TaskController struct {
-	ListTaskUsecase taskusecases.ListTaskUsecase
-	AddTaskUsecase  taskusecases.AddTaskUsecase
+	ListTaskUsecase usecases.ListTaskUsecase
+	AddTaskUsecase  usecases.AddTaskUsecase
 }
 
 type task struct {
