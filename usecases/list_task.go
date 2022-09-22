@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 	"undefeated-davout/echo-api-sample/entities"
-
-	"gorm.io/gorm"
+	"undefeated-davout/echo-api-sample/interface_adapters/gateways/repositories"
 )
 
 type ListTaskUsecase struct {
-	DB   *gorm.DB
+	DB   repositories.DBer
 	Repo TaskLister
 }
 

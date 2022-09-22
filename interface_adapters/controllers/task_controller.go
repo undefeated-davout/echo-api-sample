@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"undefeated-davout/echo-api-sample/entities"
 	customValidator "undefeated-davout/echo-api-sample/interface_adapters/gateways/custom_validator"
 	"undefeated-davout/echo-api-sample/interface_adapters/gateways/request"
 	"undefeated-davout/echo-api-sample/interface_adapters/presenters/response"
@@ -55,7 +56,7 @@ func (t *TaskController) AddTask(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	task, err := t.AddTaskUsecase.AddTask(ctx, userID, req.Title, req.Status)
+	task, err := t.AddTaskUsecase.AddTask(ctx, userID, req.Title, entities.TaskStatus(req.Status))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

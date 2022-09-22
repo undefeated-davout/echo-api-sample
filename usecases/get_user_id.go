@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"undefeated-davout/echo-api-sample/entities"
+	"undefeated-davout/echo-api-sample/interface_adapters/gateways/repositories"
 
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 )
 
 type GetUserIDUsecase struct {
-	DB    *gorm.DB
+	DB    repositories.DBer
 	Repo  UserGetter
 	JWTer UserNameGetter
 }

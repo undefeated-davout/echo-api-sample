@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"undefeated-davout/echo-api-sample/entities"
+	"undefeated-davout/echo-api-sample/interface_adapters/gateways/repositories"
 
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type AddUserUsecase struct {
-	DB   *gorm.DB
+	DB   repositories.DBer
 	Repo UserAdder
 }
 

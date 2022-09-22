@@ -3,12 +3,11 @@ package usecases
 import (
 	"context"
 	"fmt"
-
-	"gorm.io/gorm"
+	"undefeated-davout/echo-api-sample/interface_adapters/gateways/repositories"
 )
 
 type LoginUsecase struct {
-	DB             *gorm.DB
+	DB             repositories.DBer
 	Repo           UserGetter
 	TokenGenerator TokenGenerator
 }

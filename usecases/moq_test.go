@@ -5,166 +5,11 @@ package usecases
 
 import (
 	"context"
-	"gorm.io/gorm"
+	"github.com/labstack/echo/v4"
 	"sync"
 	"undefeated-davout/echo-api-sample/entities"
+	"undefeated-davout/echo-api-sample/interface_adapters/gateways/repositories"
 )
-
-// Ensure, that TaskListerMock does implement TaskLister.
-// If this is not the case, regenerate this file with moq.
-var _ TaskLister = &TaskListerMock{}
-
-// TaskListerMock is a mock implementation of TaskLister.
-//
-//	func TestSomethingThatUsesTaskLister(t *testing.T) {
-//
-//		// make and configure a mocked TaskLister
-//		mockedTaskLister := &TaskListerMock{
-//			ListTasksFunc: func(ctx context.Context, db *gorm.DB, id entities.UserID) ([]entities.Task, error) {
-//				panic("mock out the ListTasks method")
-//			},
-//		}
-//
-//		// use mockedTaskLister in code that requires TaskLister
-//		// and then make assertions.
-//
-//	}
-type TaskListerMock struct {
-	// ListTasksFunc mocks the ListTasks method.
-	ListTasksFunc func(ctx context.Context, db *gorm.DB, id entities.UserID) ([]entities.Task, error)
-
-	// calls tracks calls to the methods.
-	calls struct {
-		// ListTasks holds details about calls to the ListTasks method.
-		ListTasks []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// Db is the db argument value.
-			Db *gorm.DB
-			// ID is the id argument value.
-			ID entities.UserID
-		}
-	}
-	lockListTasks sync.RWMutex
-}
-
-// ListTasks calls ListTasksFunc.
-func (mock *TaskListerMock) ListTasks(ctx context.Context, db *gorm.DB, id entities.UserID) ([]entities.Task, error) {
-	if mock.ListTasksFunc == nil {
-		panic("TaskListerMock.ListTasksFunc: method is nil but TaskLister.ListTasks was just called")
-	}
-	callInfo := struct {
-		Ctx context.Context
-		Db  *gorm.DB
-		ID  entities.UserID
-	}{
-		Ctx: ctx,
-		Db:  db,
-		ID:  id,
-	}
-	mock.lockListTasks.Lock()
-	mock.calls.ListTasks = append(mock.calls.ListTasks, callInfo)
-	mock.lockListTasks.Unlock()
-	return mock.ListTasksFunc(ctx, db, id)
-}
-
-// ListTasksCalls gets all the calls that were made to ListTasks.
-// Check the length with:
-//
-//	len(mockedTaskLister.ListTasksCalls())
-func (mock *TaskListerMock) ListTasksCalls() []struct {
-	Ctx context.Context
-	Db  *gorm.DB
-	ID  entities.UserID
-} {
-	var calls []struct {
-		Ctx context.Context
-		Db  *gorm.DB
-		ID  entities.UserID
-	}
-	mock.lockListTasks.RLock()
-	calls = mock.calls.ListTasks
-	mock.lockListTasks.RUnlock()
-	return calls
-}
-
-// Ensure, that TaskAdderMock does implement TaskAdder.
-// If this is not the case, regenerate this file with moq.
-var _ TaskAdder = &TaskAdderMock{}
-
-// TaskAdderMock is a mock implementation of TaskAdder.
-//
-//	func TestSomethingThatUsesTaskAdder(t *testing.T) {
-//
-//		// make and configure a mocked TaskAdder
-//		mockedTaskAdder := &TaskAdderMock{
-//			AddTaskFunc: func(ctx context.Context, db *gorm.DB, t *entities.Task) error {
-//				panic("mock out the AddTask method")
-//			},
-//		}
-//
-//		// use mockedTaskAdder in code that requires TaskAdder
-//		// and then make assertions.
-//
-//	}
-type TaskAdderMock struct {
-	// AddTaskFunc mocks the AddTask method.
-	AddTaskFunc func(ctx context.Context, db *gorm.DB, t *entities.Task) error
-
-	// calls tracks calls to the methods.
-	calls struct {
-		// AddTask holds details about calls to the AddTask method.
-		AddTask []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// Db is the db argument value.
-			Db *gorm.DB
-			// T is the t argument value.
-			T *entities.Task
-		}
-	}
-	lockAddTask sync.RWMutex
-}
-
-// AddTask calls AddTaskFunc.
-func (mock *TaskAdderMock) AddTask(ctx context.Context, db *gorm.DB, t *entities.Task) error {
-	if mock.AddTaskFunc == nil {
-		panic("TaskAdderMock.AddTaskFunc: method is nil but TaskAdder.AddTask was just called")
-	}
-	callInfo := struct {
-		Ctx context.Context
-		Db  *gorm.DB
-		T   *entities.Task
-	}{
-		Ctx: ctx,
-		Db:  db,
-		T:   t,
-	}
-	mock.lockAddTask.Lock()
-	mock.calls.AddTask = append(mock.calls.AddTask, callInfo)
-	mock.lockAddTask.Unlock()
-	return mock.AddTaskFunc(ctx, db, t)
-}
-
-// AddTaskCalls gets all the calls that were made to AddTask.
-// Check the length with:
-//
-//	len(mockedTaskAdder.AddTaskCalls())
-func (mock *TaskAdderMock) AddTaskCalls() []struct {
-	Ctx context.Context
-	Db  *gorm.DB
-	T   *entities.Task
-} {
-	var calls []struct {
-		Ctx context.Context
-		Db  *gorm.DB
-		T   *entities.Task
-	}
-	mock.lockAddTask.RLock()
-	calls = mock.calls.AddTask
-	mock.lockAddTask.RUnlock()
-	return calls
-}
 
 // Ensure, that UserGetterMock does implement UserGetter.
 // If this is not the case, regenerate this file with moq.
@@ -176,7 +21,7 @@ var _ UserGetter = &UserGetterMock{}
 //
 //		// make and configure a mocked UserGetter
 //		mockedUserGetter := &UserGetterMock{
-//			GetUserByNameFunc: func(ctx context.Context, db *gorm.DB, name string) (*entities.User, error) {
+//			GetUserByNameFunc: func(ctx context.Context, db repositories.DBer, name string) (*entities.User, error) {
 //				panic("mock out the GetUserByName method")
 //			},
 //		}
@@ -187,7 +32,7 @@ var _ UserGetter = &UserGetterMock{}
 //	}
 type UserGetterMock struct {
 	// GetUserByNameFunc mocks the GetUserByName method.
-	GetUserByNameFunc func(ctx context.Context, db *gorm.DB, name string) (*entities.User, error)
+	GetUserByNameFunc func(ctx context.Context, db repositories.DBer, name string) (*entities.User, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -196,7 +41,7 @@ type UserGetterMock struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// Db is the db argument value.
-			Db *gorm.DB
+			Db repositories.DBer
 			// Name is the name argument value.
 			Name string
 		}
@@ -205,13 +50,13 @@ type UserGetterMock struct {
 }
 
 // GetUserByName calls GetUserByNameFunc.
-func (mock *UserGetterMock) GetUserByName(ctx context.Context, db *gorm.DB, name string) (*entities.User, error) {
+func (mock *UserGetterMock) GetUserByName(ctx context.Context, db repositories.DBer, name string) (*entities.User, error) {
 	if mock.GetUserByNameFunc == nil {
 		panic("UserGetterMock.GetUserByNameFunc: method is nil but UserGetter.GetUserByName was just called")
 	}
 	callInfo := struct {
 		Ctx  context.Context
-		Db   *gorm.DB
+		Db   repositories.DBer
 		Name string
 	}{
 		Ctx:  ctx,
@@ -230,12 +75,12 @@ func (mock *UserGetterMock) GetUserByName(ctx context.Context, db *gorm.DB, name
 //	len(mockedUserGetter.GetUserByNameCalls())
 func (mock *UserGetterMock) GetUserByNameCalls() []struct {
 	Ctx  context.Context
-	Db   *gorm.DB
+	Db   repositories.DBer
 	Name string
 } {
 	var calls []struct {
 		Ctx  context.Context
-		Db   *gorm.DB
+		Db   repositories.DBer
 		Name string
 	}
 	mock.lockGetUserByName.RLock()
@@ -254,7 +99,7 @@ var _ UserAdder = &UserAdderMock{}
 //
 //		// make and configure a mocked UserAdder
 //		mockedUserAdder := &UserAdderMock{
-//			AddUserFunc: func(ctx context.Context, db *gorm.DB, u *entities.User) error {
+//			AddUserFunc: func(ctx context.Context, db repositories.DBer, u *entities.User) error {
 //				panic("mock out the AddUser method")
 //			},
 //		}
@@ -265,7 +110,7 @@ var _ UserAdder = &UserAdderMock{}
 //	}
 type UserAdderMock struct {
 	// AddUserFunc mocks the AddUser method.
-	AddUserFunc func(ctx context.Context, db *gorm.DB, u *entities.User) error
+	AddUserFunc func(ctx context.Context, db repositories.DBer, u *entities.User) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -274,7 +119,7 @@ type UserAdderMock struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// Db is the db argument value.
-			Db *gorm.DB
+			Db repositories.DBer
 			// U is the u argument value.
 			U *entities.User
 		}
@@ -283,13 +128,13 @@ type UserAdderMock struct {
 }
 
 // AddUser calls AddUserFunc.
-func (mock *UserAdderMock) AddUser(ctx context.Context, db *gorm.DB, u *entities.User) error {
+func (mock *UserAdderMock) AddUser(ctx context.Context, db repositories.DBer, u *entities.User) error {
 	if mock.AddUserFunc == nil {
 		panic("UserAdderMock.AddUserFunc: method is nil but UserAdder.AddUser was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
-		Db  *gorm.DB
+		Db  repositories.DBer
 		U   *entities.User
 	}{
 		Ctx: ctx,
@@ -308,17 +153,173 @@ func (mock *UserAdderMock) AddUser(ctx context.Context, db *gorm.DB, u *entities
 //	len(mockedUserAdder.AddUserCalls())
 func (mock *UserAdderMock) AddUserCalls() []struct {
 	Ctx context.Context
-	Db  *gorm.DB
+	Db  repositories.DBer
 	U   *entities.User
 } {
 	var calls []struct {
 		Ctx context.Context
-		Db  *gorm.DB
+		Db  repositories.DBer
 		U   *entities.User
 	}
 	mock.lockAddUser.RLock()
 	calls = mock.calls.AddUser
 	mock.lockAddUser.RUnlock()
+	return calls
+}
+
+// Ensure, that TaskListerMock does implement TaskLister.
+// If this is not the case, regenerate this file with moq.
+var _ TaskLister = &TaskListerMock{}
+
+// TaskListerMock is a mock implementation of TaskLister.
+//
+//	func TestSomethingThatUsesTaskLister(t *testing.T) {
+//
+//		// make and configure a mocked TaskLister
+//		mockedTaskLister := &TaskListerMock{
+//			ListTasksFunc: func(ctx context.Context, db repositories.DBer, id entities.UserID) ([]entities.Task, error) {
+//				panic("mock out the ListTasks method")
+//			},
+//		}
+//
+//		// use mockedTaskLister in code that requires TaskLister
+//		// and then make assertions.
+//
+//	}
+type TaskListerMock struct {
+	// ListTasksFunc mocks the ListTasks method.
+	ListTasksFunc func(ctx context.Context, db repositories.DBer, id entities.UserID) ([]entities.Task, error)
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// ListTasks holds details about calls to the ListTasks method.
+		ListTasks []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Db is the db argument value.
+			Db repositories.DBer
+			// ID is the id argument value.
+			ID entities.UserID
+		}
+	}
+	lockListTasks sync.RWMutex
+}
+
+// ListTasks calls ListTasksFunc.
+func (mock *TaskListerMock) ListTasks(ctx context.Context, db repositories.DBer, id entities.UserID) ([]entities.Task, error) {
+	if mock.ListTasksFunc == nil {
+		panic("TaskListerMock.ListTasksFunc: method is nil but TaskLister.ListTasks was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		Db  repositories.DBer
+		ID  entities.UserID
+	}{
+		Ctx: ctx,
+		Db:  db,
+		ID:  id,
+	}
+	mock.lockListTasks.Lock()
+	mock.calls.ListTasks = append(mock.calls.ListTasks, callInfo)
+	mock.lockListTasks.Unlock()
+	return mock.ListTasksFunc(ctx, db, id)
+}
+
+// ListTasksCalls gets all the calls that were made to ListTasks.
+// Check the length with:
+//
+//	len(mockedTaskLister.ListTasksCalls())
+func (mock *TaskListerMock) ListTasksCalls() []struct {
+	Ctx context.Context
+	Db  repositories.DBer
+	ID  entities.UserID
+} {
+	var calls []struct {
+		Ctx context.Context
+		Db  repositories.DBer
+		ID  entities.UserID
+	}
+	mock.lockListTasks.RLock()
+	calls = mock.calls.ListTasks
+	mock.lockListTasks.RUnlock()
+	return calls
+}
+
+// Ensure, that TaskAdderMock does implement TaskAdder.
+// If this is not the case, regenerate this file with moq.
+var _ TaskAdder = &TaskAdderMock{}
+
+// TaskAdderMock is a mock implementation of TaskAdder.
+//
+//	func TestSomethingThatUsesTaskAdder(t *testing.T) {
+//
+//		// make and configure a mocked TaskAdder
+//		mockedTaskAdder := &TaskAdderMock{
+//			AddTaskFunc: func(ctx context.Context, db repositories.DBer, t *entities.Task) error {
+//				panic("mock out the AddTask method")
+//			},
+//		}
+//
+//		// use mockedTaskAdder in code that requires TaskAdder
+//		// and then make assertions.
+//
+//	}
+type TaskAdderMock struct {
+	// AddTaskFunc mocks the AddTask method.
+	AddTaskFunc func(ctx context.Context, db repositories.DBer, t *entities.Task) error
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// AddTask holds details about calls to the AddTask method.
+		AddTask []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Db is the db argument value.
+			Db repositories.DBer
+			// T is the t argument value.
+			T *entities.Task
+		}
+	}
+	lockAddTask sync.RWMutex
+}
+
+// AddTask calls AddTaskFunc.
+func (mock *TaskAdderMock) AddTask(ctx context.Context, db repositories.DBer, t *entities.Task) error {
+	if mock.AddTaskFunc == nil {
+		panic("TaskAdderMock.AddTaskFunc: method is nil but TaskAdder.AddTask was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		Db  repositories.DBer
+		T   *entities.Task
+	}{
+		Ctx: ctx,
+		Db:  db,
+		T:   t,
+	}
+	mock.lockAddTask.Lock()
+	mock.calls.AddTask = append(mock.calls.AddTask, callInfo)
+	mock.lockAddTask.Unlock()
+	return mock.AddTaskFunc(ctx, db, t)
+}
+
+// AddTaskCalls gets all the calls that were made to AddTask.
+// Check the length with:
+//
+//	len(mockedTaskAdder.AddTaskCalls())
+func (mock *TaskAdderMock) AddTaskCalls() []struct {
+	Ctx context.Context
+	Db  repositories.DBer
+	T   *entities.Task
+} {
+	var calls []struct {
+		Ctx context.Context
+		Db  repositories.DBer
+		T   *entities.Task
+	}
+	mock.lockAddTask.RLock()
+	calls = mock.calls.AddTask
+	mock.lockAddTask.RUnlock()
 	return calls
 }
 
@@ -391,5 +392,71 @@ func (mock *TokenGeneratorMock) GenerateTokenCalls() []struct {
 	mock.lockGenerateToken.RLock()
 	calls = mock.calls.GenerateToken
 	mock.lockGenerateToken.RUnlock()
+	return calls
+}
+
+// Ensure, that UserNameGetterMock does implement UserNameGetter.
+// If this is not the case, regenerate this file with moq.
+var _ UserNameGetter = &UserNameGetterMock{}
+
+// UserNameGetterMock is a mock implementation of UserNameGetter.
+//
+//	func TestSomethingThatUsesUserNameGetter(t *testing.T) {
+//
+//		// make and configure a mocked UserNameGetter
+//		mockedUserNameGetter := &UserNameGetterMock{
+//			GetUserNameFunc: func(c echo.Context) string {
+//				panic("mock out the GetUserName method")
+//			},
+//		}
+//
+//		// use mockedUserNameGetter in code that requires UserNameGetter
+//		// and then make assertions.
+//
+//	}
+type UserNameGetterMock struct {
+	// GetUserNameFunc mocks the GetUserName method.
+	GetUserNameFunc func(c echo.Context) string
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// GetUserName holds details about calls to the GetUserName method.
+		GetUserName []struct {
+			// C is the c argument value.
+			C echo.Context
+		}
+	}
+	lockGetUserName sync.RWMutex
+}
+
+// GetUserName calls GetUserNameFunc.
+func (mock *UserNameGetterMock) GetUserName(c echo.Context) string {
+	if mock.GetUserNameFunc == nil {
+		panic("UserNameGetterMock.GetUserNameFunc: method is nil but UserNameGetter.GetUserName was just called")
+	}
+	callInfo := struct {
+		C echo.Context
+	}{
+		C: c,
+	}
+	mock.lockGetUserName.Lock()
+	mock.calls.GetUserName = append(mock.calls.GetUserName, callInfo)
+	mock.lockGetUserName.Unlock()
+	return mock.GetUserNameFunc(c)
+}
+
+// GetUserNameCalls gets all the calls that were made to GetUserName.
+// Check the length with:
+//
+//	len(mockedUserNameGetter.GetUserNameCalls())
+func (mock *UserNameGetterMock) GetUserNameCalls() []struct {
+	C echo.Context
+} {
+	var calls []struct {
+		C echo.Context
+	}
+	mock.lockGetUserName.RLock()
+	calls = mock.calls.GetUserName
+	mock.lockGetUserName.RUnlock()
 	return calls
 }

@@ -12,11 +12,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-
-	"gorm.io/gorm"
 )
 
-func NewRouter(ctx context.Context, e *echo.Echo, db *gorm.DB, cfg *config.Config) error {
+func NewRouter(ctx context.Context, e *echo.Echo, db repositories.DBer, cfg *config.Config) error {
 	validator := customValidator.NewValidator()
 	e.Validator = validator
 	clocker := entities.RealClocker{}
