@@ -48,7 +48,7 @@ func (t *TaskController) AddTask(c echo.Context) error {
 
 	req := new(request.AddTaskRequest)
 	if err := t.Validator.GetValidatedRequest(c, req); err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	userID, err := t.GetUserIDUsecase.GetUserID(c, ctx)

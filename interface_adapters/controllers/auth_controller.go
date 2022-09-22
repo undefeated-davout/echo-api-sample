@@ -19,7 +19,7 @@ type AuthController struct {
 func (t *AuthController) Login(c echo.Context) error {
 	req := new(request.LoginRequest)
 	if err := t.Validator.GetValidatedRequest(c, req); err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	token, err := t.LoginUsecase.Login(c.Request().Context(), req.Name, req.Password)

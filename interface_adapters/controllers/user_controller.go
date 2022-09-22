@@ -19,7 +19,7 @@ type UserController struct {
 func (t *UserController) AddUser(c echo.Context) error {
 	req := new(request.AddUserRequest)
 	if err := t.Validator.GetValidatedRequest(c, req); err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	user, err := t.AddUserUsecase.AddUser(c.Request().Context(), req.Name, req.Password, req.Role)
