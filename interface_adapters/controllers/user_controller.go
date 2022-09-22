@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
-	"undefeated-davout/echo-api-sample/entities"
+	customValidator "undefeated-davout/echo-api-sample/interface_adapters/gateways/custom_validator"
+	"undefeated-davout/echo-api-sample/interface_adapters/gateways/request"
+	"undefeated-davout/echo-api-sample/interface_adapters/presenters/response"
 	"undefeated-davout/echo-api-sample/usecases"
 
 	"github.com/labstack/echo/v4"
@@ -10,20 +12,20 @@ import (
 
 type UserController struct {
 	AddUserUsecase usecases.AddUserUsecase
+	Validator      *customValidator.CustomValidator
 }
 
 // ユーザ登録
 func (t *UserController) AddUser(c echo.Context) error {
-	name := c.FormValue("name")
-	password := c.FormValue("password")
-	role := c.FormValue("role")
+	req := new(request.AddUserRequest)
+	if err := t.Validator.GetValidatedRequest(c, req); err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 
-	user, err := t.AddUserUsecase.AddUser(c.Request().Context(), name, password, role)
+	user, err := t.AddUserUsecase.AddUser(c.Request().Context(), req.Name, req.Password, req.Role)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, struct {
-		ID entities.UserID `json:"id"`
-	}{ID: user.ID})
+	return c.JSON(http.StatusOK, response.AddUserResponse{ID: user.ID})
 }

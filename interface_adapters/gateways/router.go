@@ -6,6 +6,7 @@ import (
 	"undefeated-davout/echo-api-sample/entities"
 	"undefeated-davout/echo-api-sample/interface_adapters/controllers"
 	"undefeated-davout/echo-api-sample/interface_adapters/gateways/auth"
+	customValidator "undefeated-davout/echo-api-sample/interface_adapters/gateways/custom_validator"
 	"undefeated-davout/echo-api-sample/interface_adapters/gateways/repositories"
 	"undefeated-davout/echo-api-sample/usecases"
 
@@ -16,6 +17,8 @@ import (
 )
 
 func NewRouter(ctx context.Context, e *echo.Echo, db *gorm.DB, cfg *config.Config) error {
+	validator := customValidator.NewValidator()
+	e.Validator = validator
 	clocker := entities.RealClocker{}
 	repo := &repositories.Repository{Clocker: clocker}
 	redisStore, err := repositories.NewKVS(ctx, cfg)
@@ -28,20 +31,23 @@ func NewRouter(ctx context.Context, e *echo.Echo, db *gorm.DB, cfg *config.Confi
 	e.GET("/health", healthController.CheckHealth)
 
 	userController := &controllers.UserController{
+		Validator:      validator,
 		AddUserUsecase: usecases.AddUserUsecase{DB: db, Repo: repo},
 	}
 	e.POST("/users", userController.AddUser)
 
 	authController := &controllers.AuthController{
+		Validator:    validator,
 		LoginUsecase: usecases.LoginUsecase{DB: db, Repo: repo, TokenGenerator: jwter},
 	}
-	e.GET("/login", authController.Login)
+	e.POST("/login", authController.Login)
 
 	// --- 認証あり ---
 	config := middleware.JWTConfig{Claims: &auth.JWTCustomClaims{}, SigningKey: []byte(cfg.JWTSecretKey)}
 	tg := e.Group("/tasks")
 	tg.Use(middleware.JWTWithConfig(config))
 	taskController := &controllers.TaskController{
+		Validator:        validator,
 		ListTaskUsecase:  usecases.ListTaskUsecase{DB: db, Repo: repo},
 		AddTaskUsecase:   usecases.AddTaskUsecase{DB: db, Repo: repo},
 		GetUserIDUsecase: usecases.GetUserIDUsecase{DB: db, Repo: repo, JWTer: jwter},

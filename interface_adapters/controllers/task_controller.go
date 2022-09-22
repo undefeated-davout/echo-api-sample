@@ -2,27 +2,25 @@ package controllers
 
 import (
 	"net/http"
-	"undefeated-davout/echo-api-sample/entities"
+	customValidator "undefeated-davout/echo-api-sample/interface_adapters/gateways/custom_validator"
+	"undefeated-davout/echo-api-sample/interface_adapters/gateways/request"
+	"undefeated-davout/echo-api-sample/interface_adapters/presenters/response"
 	"undefeated-davout/echo-api-sample/usecases"
 
 	"github.com/labstack/echo/v4"
 )
 
 type TaskController struct {
+	Validator        *customValidator.CustomValidator
 	ListTaskUsecase  usecases.ListTaskUsecase
 	AddTaskUsecase   usecases.AddTaskUsecase
 	GetUserIDUsecase usecases.GetUserIDUsecase
 }
 
-type task struct {
-	ID     entities.TaskID     `json:"id"`
-	Title  string              `json:"title"`
-	Status entities.TaskStatus `json:"status"`
-}
-
 // タスク取得
 func (t *TaskController) ListTasks(c echo.Context) error {
 	ctx := c.Request().Context()
+
 	userID, err := t.GetUserIDUsecase.GetUserID(c, ctx)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -32,9 +30,9 @@ func (t *TaskController) ListTasks(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	rsp := []task{}
+	rsp := response.ListTasksResponse{}
 	for _, t := range tasks {
-		rsp = append(rsp, task{
+		rsp = append(rsp, response.TaskResponse{
 			ID:     t.ID,
 			Title:  t.Title,
 			Status: t.Status,
@@ -46,20 +44,21 @@ func (t *TaskController) ListTasks(c echo.Context) error {
 // タスク登録
 func (t *TaskController) AddTask(c echo.Context) error {
 	ctx := c.Request().Context()
-	title := c.FormValue("title")
-	status := c.FormValue("status")
+
+	req := new(request.AddTaskRequest)
+	if err := t.Validator.GetValidatedRequest(c, req); err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 
 	userID, err := t.GetUserIDUsecase.GetUserID(c, ctx)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	task, err := t.AddTaskUsecase.AddTask(ctx, userID, title, status)
+	task, err := t.AddTaskUsecase.AddTask(ctx, userID, req.Title, req.Status)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, struct {
-		ID entities.TaskID `json:"id"`
-	}{ID: task.ID})
+	return c.JSON(http.StatusOK, response.AddTaskResponse{ID: task.ID})
 }
