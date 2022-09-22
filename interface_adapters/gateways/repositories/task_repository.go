@@ -9,7 +9,7 @@ import (
 
 func (r *Repository) ListTasks(ctx context.Context, db *gorm.DB, userID entities.UserID) ([]entities.Task, error) {
 	tasks := []entities.Task{}
-	if err := db.Find(&tasks).Error; err != nil {
+	if err := db.Where("user_id = ?", userID).Find(&tasks).Error; err != nil {
 		return tasks, err
 	}
 	return tasks, nil

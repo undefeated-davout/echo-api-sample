@@ -13,14 +13,7 @@ type AddTaskUsecase struct {
 	Repo TaskAdder
 }
 
-func (a *AddTaskUsecase) AddTask(ctx context.Context, title string, status string) (*entities.Task, error) {
-	// id, ok := auth.GetUserID(ctx)
-	// if !ok {
-	// 	return nil, fmt.Errorf("user_id not found")
-	// }
-
-	var userID entities.UserID = 1
-
+func (a *AddTaskUsecase) AddTask(ctx context.Context, userID entities.UserID, title string, status string) (*entities.Task, error) {
 	task := &entities.Task{
 		UserID: userID,
 		Title:  title,

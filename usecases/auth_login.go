@@ -23,10 +23,10 @@ func (l *LoginUsecase) Login(ctx context.Context, name, pw string) (string, erro
 		return "", fmt.Errorf("wrong password: %w", err)
 	}
 
-	jwt, err := l.TokenGenerator.GenerateToken(ctx, *u)
+	token, err := l.TokenGenerator.GenerateToken(ctx, *u)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate JWT: %w", err)
 	}
 
-	return string(jwt), nil
+	return token, nil
 }

@@ -13,14 +13,7 @@ type ListTaskUsecase struct {
 	Repo TaskLister
 }
 
-func (l *ListTaskUsecase) ListTasks(ctx context.Context) ([]entities.Task, error) {
-	// id, ok := auth.GetUserID(ctx)
-	// if !ok {
-	// 	return nil, fmt.Errorf("user_id not found")
-	// }
-
-	var userID entities.UserID = 1
-
+func (l *ListTaskUsecase) ListTasks(ctx context.Context, userID entities.UserID) ([]entities.Task, error) {
 	tasks, err := l.Repo.ListTasks(ctx, l.DB, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list: %w", err)

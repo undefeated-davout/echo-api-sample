@@ -4,6 +4,7 @@ import (
 	"context"
 	"undefeated-davout/echo-api-sample/entities"
 
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -24,5 +25,9 @@ type UserAdder interface {
 }
 
 type TokenGenerator interface {
-	GenerateToken(ctx context.Context, u entities.User) ([]byte, error)
+	GenerateToken(ctx context.Context, u entities.User) (string, error)
+}
+
+type UserNameGetter interface {
+	GetUserName(c echo.Context) string
 }

@@ -10,30 +10,22 @@ import (
 	"undefeated-davout/echo-api-sample/usecases"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+
 	"gorm.io/gorm"
 )
 
 func NewRouter(ctx context.Context, e *echo.Echo, db *gorm.DB, cfg *config.Config) error {
 	clocker := entities.RealClocker{}
 	repo := &repositories.Repository{Clocker: clocker}
-	rcli, err := repositories.NewKVS(ctx, cfg)
+	redisStore, err := repositories.NewKVS(ctx, cfg)
 	if err != nil {
 		return err
 	}
-	jwter, err := auth.NewJWTer(rcli, clocker)
-	if err != nil {
-		return err
-	}
+	jwter := auth.NewJWTer(redisStore, clocker, cfg.JWTSecretKey)
 
 	healthController := &controllers.HealthController{}
 	e.GET("/health", healthController.CheckHealth)
-
-	taskController := &controllers.TaskController{
-		ListTaskUsecase: usecases.ListTaskUsecase{DB: db, Repo: repo},
-		AddTaskUsecase:  usecases.AddTaskUsecase{DB: db, Repo: repo},
-	}
-	e.GET("/tasks", taskController.ListTasks)
-	e.POST("/tasks", taskController.AddTask)
 
 	userController := &controllers.UserController{
 		AddUserUsecase: usecases.AddUserUsecase{DB: db, Repo: repo},
@@ -44,5 +36,18 @@ func NewRouter(ctx context.Context, e *echo.Echo, db *gorm.DB, cfg *config.Confi
 		LoginUsecase: usecases.LoginUsecase{DB: db, Repo: repo, TokenGenerator: jwter},
 	}
 	e.GET("/login", authController.Login)
+
+	// --- 認証あり ---
+	config := middleware.JWTConfig{Claims: &auth.JWTCustomClaims{}, SigningKey: []byte(cfg.JWTSecretKey)}
+	tg := e.Group("/tasks")
+	tg.Use(middleware.JWTWithConfig(config))
+	taskController := &controllers.TaskController{
+		ListTaskUsecase:  usecases.ListTaskUsecase{DB: db, Repo: repo},
+		AddTaskUsecase:   usecases.AddTaskUsecase{DB: db, Repo: repo},
+		GetUserIDUsecase: usecases.GetUserIDUsecase{DB: db, Repo: repo, JWTer: jwter},
+	}
+	tg.GET("", taskController.ListTasks)
+	tg.POST("", taskController.AddTask)
+
 	return nil
 }

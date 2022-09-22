@@ -2,34 +2,13 @@ package auth
 
 import (
 	"context"
-	_ "embed"
-	"fmt"
-	"net/http"
 	"time"
 	"undefeated-davout/echo-api-sample/entities"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/labstack/echo/v4"
 )
-
-const (
-	RoleKey     = "role"
-	UserNameKey = "user_name"
-)
-
-//go:embed cert/secret.pem
-var rawPrivKey []byte
-
-//go:embed cert/public.pem
-var rawPubKey []byte
-
-type JWTer struct {
-	PrivateKey, PublicKey jwk.Key
-	Store                 Store
-	Clocker               entities.Clocker
-}
 
 //go:generate go run github.com/matryer/moq -out moq_test.go . Store
 type Store interface {
@@ -37,119 +16,60 @@ type Store interface {
 	Load(ctx context.Context, key string) (entities.UserID, error)
 }
 
-func NewJWTer(s Store, c entities.Clocker) (*JWTer, error) {
-	j := &JWTer{Store: s}
-	privkey, err := parse(rawPrivKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed in NewJWTer: private key: %w", err)
-	}
-	pubkey, err := parse(rawPubKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed in NewJWTer: public key: %w", err)
-	}
-	j.PrivateKey = privkey
-	j.PublicKey = pubkey
-	j.Clocker = c
-	return j, nil
+type JWTer struct {
+	Store        Store
+	Clocker      entities.Clocker
+	JWTSecretKey string
 }
 
-func parse(rawKey []byte) (jwk.Key, error) {
-	key, err := jwk.ParseKey(rawKey, jwk.WithPEM(true))
-	if err != nil {
-		return nil, err
-	}
-	return key, nil
+type JWTCustomClaims struct {
+	Name string `json:"user_name"`
+	Role string `json:"role"`
+	jwt.StandardClaims
 }
 
-func (j *JWTer) GenerateToken(ctx context.Context, u entities.User) ([]byte, error) {
-	// トークン作成
-	tok, err := jwt.NewBuilder().
-		JwtID(uuid.New().String()).
-		Issuer(`github.com/undefeated-davout/echo-api-sample`).
-		Subject("access_token").
-		IssuedAt(j.Clocker.Now()).
-		Expiration(j.Clocker.Now().Add(30*time.Minute)).
-		Claim(RoleKey, u.Role).
-		Claim(UserNameKey, u.Name).
-		Build()
-	if err != nil {
-		return nil, fmt.Errorf("GenerateToken: failed to build token: %w", err)
-	}
-	// redisに書き込み
-	if err := j.Store.Save(ctx, tok.JwtID(), u.ID); err != nil {
-		return nil, err
-	}
-	// 秘密鍵で署名
-	signed, err := jwt.Sign(tok, jwt.WithKey(jwa.RS256, j.PrivateKey))
-	if err != nil {
-		return nil, err
-	}
-	return signed, nil
+func NewJWTer(s Store, c entities.Clocker, secretKey string) *JWTer {
+	return &JWTer{Store: s, Clocker: c, JWTSecretKey: secretKey}
 }
 
-func (j *JWTer) GetToken(ctx context.Context, r *http.Request) (jwt.Token, error) {
-	token, err := jwt.ParseRequest(
-		r,
-		jwt.WithKey(jwa.RS256, j.PublicKey),
-		jwt.WithValidate(false),
-	)
+func (j *JWTer) setCustomClaims(name string, role string) *JWTCustomClaims {
+	claims := &JWTCustomClaims{
+		Name: name,
+		Role: role,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Minute * 30).Unix(),
+		},
+	}
+	return claims
+}
+
+func (j *JWTer) getSignedToken(claims *JWTCustomClaims) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	t, err := token.SignedString([]byte(j.JWTSecretKey))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	if err := jwt.Validate(token, jwt.WithClock(j.Clocker)); err != nil {
-		return nil, fmt.Errorf("GetToken: failed to validate token: %w", err)
+	return t, nil
+}
+
+func (j *JWTer) GenerateToken(ctx context.Context, user entities.User) (string, error) {
+	claims := j.setCustomClaims(user.Name, user.Role)
+	token, err := j.getSignedToken(claims)
+	if err != nil {
+		return "", err
 	}
-	if _, err := j.Store.Load(ctx, token.JwtID()); err != nil {
-		return nil, fmt.Errorf("GetToken: %q expired: %w", token.JwtID(), err)
+
+	jwtID := uuid.New().String()
+	// Redisに保存
+	if err := j.Store.Save(ctx, jwtID, user.ID); err != nil {
+		return "", err
 	}
+
 	return token, nil
 }
 
-type userIDKey struct{}
-type roleKey struct{}
-
-func (j *JWTer) FillContext(r *http.Request) (*http.Request, error) {
-	token, err := j.GetToken(r.Context(), r)
-	if err != nil {
-		return nil, err
-	}
-	uid, err := j.Store.Load(r.Context(), token.JwtID())
-	if err != nil {
-		return nil, err
-	}
-	ctx := SetUserID(r.Context(), uid)
-
-	ctx = SetRole(ctx, token)
-	clone := r.Clone(ctx)
-	return clone, nil
-}
-
-func SetUserID(ctx context.Context, uid entities.UserID) context.Context {
-	return context.WithValue(ctx, userIDKey{}, uid)
-}
-
-func GetUserID(ctx context.Context) (entities.UserID, bool) {
-	id, ok := ctx.Value(userIDKey{}).(entities.UserID)
-	return id, ok
-}
-
-func SetRole(ctx context.Context, tok jwt.Token) context.Context {
-	get, ok := tok.Get(RoleKey)
-	if !ok {
-		return context.WithValue(ctx, roleKey{}, "")
-	}
-	return context.WithValue(ctx, roleKey{}, get)
-}
-
-func GetRole(ctx context.Context) (string, bool) {
-	role, ok := ctx.Value(roleKey{}).(string)
-	return role, ok
-}
-
-func IsAdmin(ctx context.Context) bool {
-	role, ok := GetRole(ctx)
-	if !ok {
-		return false
-	}
-	return role == "admin"
+func (j *JWTer) GetUserName(c echo.Context) string {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*JWTCustomClaims)
+	return claims.Name
 }

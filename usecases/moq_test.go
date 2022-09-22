@@ -332,7 +332,7 @@ var _ TokenGenerator = &TokenGeneratorMock{}
 //
 //		// make and configure a mocked TokenGenerator
 //		mockedTokenGenerator := &TokenGeneratorMock{
-//			GenerateTokenFunc: func(ctx context.Context, u entities.User) ([]byte, error) {
+//			GenerateTokenFunc: func(ctx context.Context, u entities.User) (string, error) {
 //				panic("mock out the GenerateToken method")
 //			},
 //		}
@@ -343,7 +343,7 @@ var _ TokenGenerator = &TokenGeneratorMock{}
 //	}
 type TokenGeneratorMock struct {
 	// GenerateTokenFunc mocks the GenerateToken method.
-	GenerateTokenFunc func(ctx context.Context, u entities.User) ([]byte, error)
+	GenerateTokenFunc func(ctx context.Context, u entities.User) (string, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -359,7 +359,7 @@ type TokenGeneratorMock struct {
 }
 
 // GenerateToken calls GenerateTokenFunc.
-func (mock *TokenGeneratorMock) GenerateToken(ctx context.Context, u entities.User) ([]byte, error) {
+func (mock *TokenGeneratorMock) GenerateToken(ctx context.Context, u entities.User) (string, error) {
 	if mock.GenerateTokenFunc == nil {
 		panic("TokenGeneratorMock.GenerateTokenFunc: method is nil but TokenGenerator.GenerateToken was just called")
 	}

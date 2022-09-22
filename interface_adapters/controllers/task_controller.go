@@ -9,8 +9,9 @@ import (
 )
 
 type TaskController struct {
-	ListTaskUsecase usecases.ListTaskUsecase
-	AddTaskUsecase  usecases.AddTaskUsecase
+	ListTaskUsecase  usecases.ListTaskUsecase
+	AddTaskUsecase   usecases.AddTaskUsecase
+	GetUserIDUsecase usecases.GetUserIDUsecase
 }
 
 type task struct {
@@ -21,7 +22,13 @@ type task struct {
 
 // タスク取得
 func (t *TaskController) ListTasks(c echo.Context) error {
-	tasks, err := t.ListTaskUsecase.ListTasks(c.Request().Context())
+	ctx := c.Request().Context()
+	userID, err := t.GetUserIDUsecase.GetUserID(c, ctx)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	tasks, err := t.ListTaskUsecase.ListTasks(c.Request().Context(), userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -38,10 +45,16 @@ func (t *TaskController) ListTasks(c echo.Context) error {
 
 // タスク登録
 func (t *TaskController) AddTask(c echo.Context) error {
+	ctx := c.Request().Context()
 	title := c.FormValue("title")
 	status := c.FormValue("status")
 
-	task, err := t.AddTaskUsecase.AddTask(c.Request().Context(), title, status)
+	userID, err := t.GetUserIDUsecase.GetUserID(c, ctx)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	task, err := t.AddTaskUsecase.AddTask(ctx, userID, title, status)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

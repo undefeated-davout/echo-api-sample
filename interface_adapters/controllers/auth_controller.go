@@ -16,7 +16,7 @@ func (t *AuthController) Login(c echo.Context) error {
 	name := c.FormValue("name")
 	password := c.FormValue("password")
 
-	jwt, err := t.LoginUsecase.Login(c.Request().Context(), name, password)
+	token, err := t.LoginUsecase.Login(c.Request().Context(), name, password)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -24,6 +24,6 @@ func (t *AuthController) Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, struct {
 		AccessToken string `json:"access_token"`
 	}{
-		AccessToken: jwt,
+		AccessToken: token,
 	})
 }

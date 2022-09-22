@@ -15,6 +15,7 @@ func TestNew(t *testing.T) {
 	t.Setenv("DB_PASSWORD", "testdbpassword")
 	t.Setenv("REDIS_HOST", "testredishost")
 	t.Setenv("REDIS_PORT", "6379")
+	t.Setenv("JWT_SECRET_KEY", "jwtsecretkey")
 
 	tests := []struct {
 		name    string
@@ -24,7 +25,7 @@ func TestNew(t *testing.T) {
 		{
 			name: "正常",
 			want: &Config{Env: "dev", Port: 1234, DBHost: "testhost", DBName: "testname", DBPort: 3307, DBUser: "testdbuser",
-				DBPassword: "testdbpassword", RedisHost: "testredishost", RedisPort: 6379},
+				DBPassword: "testdbpassword", RedisHost: "testredishost", RedisPort: 6379, JWTSecretKey: "jwtsecretkey"},
 			wantErr: false,
 		},
 	}
